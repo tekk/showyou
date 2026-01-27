@@ -46,19 +46,21 @@ if ($method === 'POST') {
         sendError('Failed to create note', 500);
     }
     
-    // Update index
-    $index = ['notes' => []];
-    if (file_exists(INDEX_FILE)) {
-        $indexContent = file_get_contents(INDEX_FILE);
-        $index = json_decode($indexContent, true) ?: ['notes' => []];
+    // Update index using thread-safe function
+    $success = updateIndexFile(function($index) use ($name, $filename) {
+        $index['notes'][] = [
+            'name' => $name,
+            'path' => 'notes/' . $filename
+        ];
+        return $index;
+    });
+    
+    if (!$success) {
+        // Note was created but index update failed
+        // Cleanup: delete the created note file
+        @unlink($filePath);
+        sendError('Failed to update index', 500);
     }
-    
-    $index['notes'][] = [
-        'name' => $name,
-        'path' => 'notes/' . $filename
-    ];
-    
-    file_put_contents(INDEX_FILE, json_encode($index, JSON_PRETTY_PRINT));
     
     sendResponse([
         'success' => true,
@@ -140,11 +142,8 @@ if ($method === 'DELETE') {
         sendError('Failed to delete note', 500);
     }
     
-    // Update index
-    if (file_exists(INDEX_FILE)) {
-        $indexContent = file_get_contents(INDEX_FILE);
-        $index = json_decode($indexContent, true) ?: ['notes' => []];
-        
+    // Update index using thread-safe function
+    $success = updateIndexFile(function($index) use ($path) {
         // Remove note from index
         $index['notes'] = array_filter($index['notes'], function($note) use ($path) {
             return $note['path'] !== $path;
@@ -153,7 +152,12 @@ if ($method === 'DELETE') {
         // Re-index array
         $index['notes'] = array_values($index['notes']);
         
-        file_put_contents(INDEX_FILE, json_encode($index, JSON_PRETTY_PRINT));
+        return $index;
+    });
+    
+    if (!$success) {
+        // File was deleted but index update failed - log this as warning
+        // but still return success since the file deletion succeeded
     }
     
     sendResponse([

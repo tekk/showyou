@@ -1,7 +1,11 @@
 <?php
 // API Configuration
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+
+// CORS Configuration - restrict in production
+// Set ALLOWED_ORIGINS environment variable to restrict access
+$allowedOrigins = getenv('ALLOWED_ORIGINS') ?: '*';
+header('Access-Control-Allow-Origin: ' . $allowedOrigins);
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
@@ -59,6 +63,60 @@ function validateFilename($filename) {
     
     return $filename;
 }
+
+// Thread-safe index file update with file locking
+function updateIndexFile($callback) {
+    $lockFile = INDEX_FILE . '.lock';
+    $fp = fopen($lockFile, 'w');
+    
+    if (!$fp) {
+        return false;
+    }
+    
+    // Acquire exclusive lock
+    if (!flock($fp, LOCK_EX)) {
+        fclose($fp);
+        return false;
+    }
+    
+    try {
+        // Read current index
+        $index = ['notes' => []];
+        if (file_exists(INDEX_FILE)) {
+            $indexContent = file_get_contents(INDEX_FILE);
+            $index = json_decode($indexContent, true) ?: ['notes' => []];
+        }
+        
+        // Apply callback to modify index
+        $index = $callback($index);
+        
+        // Write updated index atomically
+        $tmpFile = INDEX_FILE . '.tmp';
+        if (file_put_contents($tmpFile, json_encode($index, JSON_PRETTY_PRINT)) === false) {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            return false;
+        }
+        
+        // Atomic rename
+        if (!rename($tmpFile, INDEX_FILE)) {
+            @unlink($tmpFile);
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            return false;
+        }
+        
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        @unlink($lockFile);
+        return true;
+    } catch (Exception $e) {
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        return false;
+    }
+}
+
 
 // Get file extension
 function getFileExtension($filename) {

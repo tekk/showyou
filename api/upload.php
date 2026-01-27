@@ -45,22 +45,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // If it's a markdown file, update the notes index
     if ($extension === 'md') {
-        // Read current index
-        $index = ['notes' => []];
-        if (file_exists(INDEX_FILE)) {
-            $indexContent = file_get_contents(INDEX_FILE);
-            $index = json_decode($indexContent, true) ?: ['notes' => []];
-        }
-        
-        // Add new note to index
+        // Update index using thread-safe function
         $noteName = pathinfo($safeName, PATHINFO_FILENAME);
-        $index['notes'][] = [
-            'name' => $noteName,
-            'path' => 'uploads/' . $uniqueName
-        ];
+        $success = updateIndexFile(function($index) use ($noteName, $uniqueName) {
+            $index['notes'][] = [
+                'name' => $noteName,
+                'path' => 'uploads/' . $uniqueName
+            ];
+            return $index;
+        });
         
-        // Save updated index
-        file_put_contents(INDEX_FILE, json_encode($index, JSON_PRETTY_PRINT));
+        if (!$success) {
+            // File was uploaded but index update failed
+            // Could log this error but still return success for the upload
+        }
     }
     
     // Return success response

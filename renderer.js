@@ -17,7 +17,7 @@ class MarkdownRenderer {
         // Try to detect if PHP backend is available
         try {
             const response = await fetch('api/notes.php');
-            if (response.ok || response.status === 200) {
+            if (response.ok) {
                 this.backendMode = true;
                 console.log('Backend mode enabled');
             }

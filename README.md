@@ -285,6 +285,23 @@ The PHP backend implements multiple security measures:
 - Filename sanitization (prevents directory traversal)
 - Path validation (ensures files stay within allowed directories)
 - Unique filename generation (prevents overwriting existing files)
+- Thread-safe index updates with file locking (prevents race conditions)
+- Atomic file operations (prevents data corruption)
+
+**Production CORS Configuration:**
+
+For production deployments, restrict CORS access by setting the `ALLOWED_ORIGINS` environment variable:
+
+```bash
+# Docker
+docker run -e ALLOWED_ORIGINS="https://yourdomain.com" ...
+
+# Docker Compose
+environment:
+  - ALLOWED_ORIGINS=https://yourdomain.com
+```
+
+By default, CORS is set to `*` (allow all origins) for development convenience.
 
 ## 📄 License
 
