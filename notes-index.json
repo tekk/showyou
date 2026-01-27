@@ -1,15 +1,19 @@
 {
   "notes": [
     {
-      "name": "Quick Start Guide",
+      "name": "🎨 Syntax Highlighting Showcase",
+      "path": "notes/syntax-showcase.md"
+    },
+    {
+      "name": "📘 Quick Start Guide",
       "path": "notes/quickstart.md"
     },
     {
-      "name": "Example Note",
+      "name": "📝 Example Note",
       "path": "notes/example.md"
     },
     {
-      "name": "README",
+      "name": "📄 README",
       "path": "README.md"
     }
   ]

@@ -382,58 +382,164 @@ body {
     margin-bottom: 1rem;
 }
 
-/* Syntax Highlighting (using highlight.js default dark theme colors) */
+/* Vivid VS Code-like Syntax Highlighting Theme */
 .hljs {
-    color: var(--text-primary);
+    color: #d4d4d4;
     background: transparent;
 }
 
-.hljs-keyword,
-.hljs-selector-tag,
-.hljs-subst {
-    color: #ff7b72;
-}
-
-.hljs-string,
-.hljs-doctag,
-.hljs-regexp {
-    color: #a5d6ff;
-}
-
-.hljs-title,
-.hljs-section,
-.hljs-selector-id {
-    color: #d2a8ff;
-}
-
+/* Comments */
 .hljs-comment,
 .hljs-quote {
-    color: #8b949e;
+    color: #6a9955;
     font-style: italic;
 }
 
-.hljs-number,
-.hljs-literal {
-    color: #79c0ff;
+/* Keywords - vibrant purple/magenta */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-type {
+    color: #c586c0;
+    font-weight: 600;
 }
 
-.hljs-built_in,
-.hljs-builtin-name {
-    color: #ffa657;
+/* Strings - vibrant orange */
+.hljs-string,
+.hljs-doctag,
+.hljs-regexp {
+    color: #ce9178;
 }
 
+/* Numbers - vibrant green */
+.hljs-number {
+    color: #b5cea8;
+}
+
+/* Function names - vivid yellow */
+.hljs-title,
+.hljs-function,
+.hljs-title.function_ {
+    color: #dcdcaa;
+    font-weight: 600;
+}
+
+/* Class names - bright cyan */
+.hljs-title.class_,
+.hljs-class .hljs-title {
+    color: #4ec9b0;
+    font-weight: 600;
+}
+
+/* Variables and parameters - light blue */
 .hljs-variable,
 .hljs-template-variable,
+.hljs-params,
 .hljs-attr {
-    color: #79c0ff;
+    color: #9cdcfe;
 }
 
-.hljs-function {
-    color: #d2a8ff;
+/* Built-in functions - cyan */
+.hljs-built_in,
+.hljs-builtin-name {
+    color: #4ec9b0;
 }
 
-.hljs-params {
-    color: var(--text-primary);
+/* Attributes, properties - light blue */
+.hljs-attribute,
+.hljs-property {
+    color: #9cdcfe;
+}
+
+/* Tags (HTML/XML) - bright cyan */
+.hljs-tag,
+.hljs-name {
+    color: #4ec9b0;
+}
+
+/* Meta, annotations - gray */
+.hljs-meta,
+.hljs-meta .hljs-keyword {
+    color: #808080;
+}
+
+/* Section, selector - bright purple */
+.hljs-section,
+.hljs-selector-id,
+.hljs-selector-class {
+    color: #d7ba7d;
+}
+
+/* Symbols - white */
+.hljs-symbol,
+.hljs-bullet {
+    color: #4fc1ff;
+}
+
+/* Additions (diff) - green */
+.hljs-addition {
+    color: #4ec9b0;
+    background-color: rgba(78, 201, 176, 0.1);
+}
+
+/* Deletions (diff) - red */
+.hljs-deletion {
+    color: #f48771;
+    background-color: rgba(244, 135, 113, 0.1);
+}
+
+/* Emphasis */
+.hljs-emphasis {
+    font-style: italic;
+}
+
+.hljs-strong {
+    font-weight: bold;
+}
+
+/* Special Python/Ruby */
+.hljs-decorator,
+.hljs-annotation {
+    color: #dcdcaa;
+}
+
+/* JavaScript/TypeScript specific */
+.hljs-operator {
+    color: #d4d4d4;
+}
+
+.hljs-subst {
+    color: #d4d4d4;
+}
+
+/* Constant - bright orange */
+.hljs-constant {
+    color: #4fc1ff;
+}
+
+/* Module/import - purple */
+.hljs-module,
+.hljs-namespace {
+    color: #c586c0;
+}
+
+/* This - purple */
+.hljs-this,
+.hljs-self {
+    color: #569cd6;
+    font-style: italic;
+}
+
+/* Link in markdown */
+.hljs-link {
+    color: #4fc1ff;
+    text-decoration: underline;
+}
+
+/* Formula */
+.hljs-formula {
+    color: #b5cea8;
+    background-color: rgba(181, 206, 168, 0.05);
 }
 
 /* Responsive Design */
