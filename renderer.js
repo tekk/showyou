@@ -91,6 +91,9 @@ class MarkdownRenderer {
         const speedText = document.getElementById('upload-speed');
         const timeText = document.getElementById('upload-time');
         
+        // Minimum time difference for accurate speed calculation (in seconds)
+        const MIN_TIME_DIFF_FOR_SPEED_CALC = 0.1;
+        
         try {
             // Show progress UI and hide form
             progressDiv.style.display = 'block';
@@ -128,7 +131,7 @@ class MarkdownRenderer {
                         uploadedText.textContent = this.formatFileSize(e.loaded);
                         
                         // Calculate speed (only if enough time has passed)
-                        if (timeDiff > 0.1) {
+                        if (timeDiff > MIN_TIME_DIFF_FOR_SPEED_CALC) {
                             const speed = loadedDiff / timeDiff;
                             speedText.textContent = this.formatFileSize(speed) + '/s';
                             
@@ -216,7 +219,7 @@ class MarkdownRenderer {
     }
     
     formatTime(seconds) {
-        if (!isFinite(seconds) || seconds < 0) return 'Calculating...';
+        if (!isFinite(seconds) || seconds <= 0) return 'Calculating...';
         if (seconds < 1) return '< 1s';
         if (seconds < 60) return Math.round(seconds) + 's';
         if (seconds < 3600) {
