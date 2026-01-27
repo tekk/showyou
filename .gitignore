@@ -24,3 +24,8 @@ package-lock.json
 # Build artifacts
 *.log
 .DS_Store
+
+# PHP backend uploads (user-uploaded files should not be committed)
+uploads/*
+!uploads/.gitkeep
+

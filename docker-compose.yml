@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: private-notes
+    ports:
+      - "8080:80"
+    volumes:
+      - ./notes:/var/www/html/notes
+      - ./uploads:/var/www/html/uploads
+      - ./notes-index.json:/var/www/html/notes-index.json
+    environment:
+      - PHP_UPLOAD_MAX_FILESIZE=5M
+      - PHP_POST_MAX_SIZE=5M
+    restart: unless-stopped

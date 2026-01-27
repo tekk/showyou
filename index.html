@@ -22,11 +22,39 @@
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <h2>📁 Notes</h2>
+                    <button id="upload-button" class="upload-button" style="display: none;">
+                        📤 Upload
+                    </button>
                 </div>
                 <div id="file-list" class="file-list">
                     <div class="loading">Scanning for markdown files...</div>
                 </div>
             </aside>
+            
+            <!-- Upload Modal -->
+            <div id="upload-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>📤 Upload File</h2>
+                    <p>Upload markdown files (.md) or attachments (images, PDFs, etc.)</p>
+                    <form id="upload-form">
+                        <div class="form-group">
+                            <label for="file-input">Select File:</label>
+                            <input type="file" id="file-input" name="file" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Upload</button>
+                            <button type="button" class="btn-secondary" id="cancel-upload">Cancel</button>
+                        </div>
+                    </form>
+                    <div id="upload-progress" style="display: none;">
+                        <p>Uploading...</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <!-- Main content area -->
             <main class="main-content">

@@ -5,9 +5,112 @@ class MarkdownRenderer {
         this.contentElement = document.getElementById('markdown-content');
         this.currentFileElement = document.getElementById('current-file');
         this.notes = new Map();
+        this.backendMode = false; // Will be detected automatically
         
         this.setupMarked();
+        this.detectBackendMode();
+        this.setupUploadUI();
         this.loadNotes();
+    }
+    
+    async detectBackendMode() {
+        // Try to detect if PHP backend is available
+        try {
+            const response = await fetch('api/notes.php');
+            if (response.ok || response.status === 200) {
+                this.backendMode = true;
+                console.log('Backend mode enabled');
+            }
+        } catch (error) {
+            this.backendMode = false;
+            console.log('Static mode (GitHub Pages compatible)');
+        }
+    }
+    
+    setupUploadUI() {
+        const uploadButton = document.getElementById('upload-button');
+        const uploadModal = document.getElementById('upload-modal');
+        const closeModal = uploadModal?.querySelector('.close');
+        const cancelButton = document.getElementById('cancel-upload');
+        const uploadForm = document.getElementById('upload-form');
+        
+        // Show upload button only in backend mode
+        setTimeout(() => {
+            if (this.backendMode && uploadButton) {
+                uploadButton.style.display = 'inline-block';
+            }
+        }, 100);
+        
+        if (!uploadButton || !uploadModal) return;
+        
+        uploadButton.addEventListener('click', () => {
+            uploadModal.style.display = 'flex';
+        });
+        
+        closeModal?.addEventListener('click', () => {
+            uploadModal.style.display = 'none';
+        });
+        
+        cancelButton?.addEventListener('click', () => {
+            uploadModal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', (event) => {
+            if (event.target === uploadModal) {
+                uploadModal.style.display = 'none';
+            }
+        });
+        
+        uploadForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.handleFileUpload(uploadForm);
+        });
+    }
+    
+    async handleFileUpload(form) {
+        const fileInput = form.querySelector('#file-input');
+        const progressDiv = document.getElementById('upload-progress');
+        const uploadModal = document.getElementById('upload-modal');
+        
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Please select a file');
+            return;
+        }
+        
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            progressDiv.style.display = 'block';
+            form.style.display = 'none';
+            
+            const response = await fetch('api/upload.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || 'Upload failed');
+            }
+            
+            alert(`File uploaded successfully: ${result.filename}`);
+            uploadModal.style.display = 'none';
+            form.style.display = 'block';
+            progressDiv.style.display = 'none';
+            form.reset();
+            
+            // Reload notes list
+            await this.loadNotes();
+            
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
+            form.style.display = 'block';
+            progressDiv.style.display = 'none';
+        }
     }
     
     setupMarked() {
@@ -48,9 +151,21 @@ class MarkdownRenderer {
     }
     
     async loadNotes() {
-        // In a static deployment, we need to define the notes manually
-        // or use a generated index. For this demo, we'll create sample notes
+        if (this.backendMode) {
+            // Load from API
+            try {
+                const response = await fetch('api/notes.php');
+                if (response.ok) {
+                    const data = await response.json();
+                    this.displayFileList(data.notes || []);
+                    return;
+                }
+            } catch (error) {
+                console.error('Error loading notes from API:', error);
+            }
+        }
         
+        // Fallback to static mode
         const sampleNotes = [
             {
                 name: 'README.md',
