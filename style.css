@@ -738,40 +738,131 @@ pre,
 }
 
 #upload-progress {
-    margin-top: 1rem;
-    text-align: center;
+    margin-top: 1.5rem;
 }
 
-#upload-progress p {
-    margin-bottom: 0.5rem;
-    color: var(--accent-blue);
+.upload-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-card);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
 }
 
-.progress-bar {
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-family: ui-monospace, monospace;
+}
+
+.lolcat-progress-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.lolcat-progress-bar {
     width: 100%;
-    height: 8px;
-    background: var(--bg-dark);
-    border-radius: 4px;
-    overflow: hidden;
+    height: 40px;
+    background: linear-gradient(90deg, 
+        rgba(255, 0, 0, 0.1) 0%, 
+        rgba(255, 127, 0, 0.1) 14%, 
+        rgba(255, 255, 0, 0.1) 28%, 
+        rgba(0, 255, 0, 0.1) 42%, 
+        rgba(0, 0, 255, 0.1) 57%, 
+        rgba(75, 0, 130, 0.1) 71%, 
+        rgba(148, 0, 211, 0.1) 85%, 
+        rgba(255, 0, 0, 0.1) 100%);
+    border-radius: 20px;
+    overflow: visible;
+    position: relative;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-.progress-fill {
+.lolcat-progress-fill {
     height: 100%;
-    background: var(--accent-blue);
     width: 0%;
-    animation: progressAnimation 2s ease-in-out infinite;
+    background: linear-gradient(90deg, 
+        #ff0000 0%, 
+        #ff7f00 14%, 
+        #ffff00 28%, 
+        #00ff00 42%, 
+        #0000ff 57%, 
+        #4b0082 71%, 
+        #9400d3 85%, 
+        #ff0000 100%);
+    background-size: 200% 100%;
+    border-radius: 18px;
+    transition: width 0.3s ease;
+    animation: lolcatAnimation 3s linear infinite;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
 }
 
-@keyframes progressAnimation {
+@keyframes lolcatAnimation {
     0% {
-        width: 0%;
-    }
-    50% {
-        width: 70%;
+        background-position: 0% 0%;
     }
     100% {
-        width: 100%;
+        background-position: 200% 0%;
     }
+}
+
+.lolcat-cat {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    transition: left 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    animation: catBounce 0.5s ease-in-out infinite;
+}
+
+@keyframes catBounce {
+    0%, 100% {
+        transform: translate(-50%, -50%) translateY(0);
+    }
+    50% {
+        transform: translate(-50%, -50%) translateY(-5px);
+    }
+}
+
+.upload-percentage {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, 
+        #ff0000 0%, 
+        #ff7f00 14%, 
+        #ffff00 28%, 
+        #00ff00 42%, 
+        #0000ff 57%, 
+        #4b0082 71%, 
+        #9400d3 85%, 
+        #ff0000 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: lolcatAnimation 3s linear infinite;
+    margin-top: 1rem;
 }
 
 /* Update sidebar header to be flex */

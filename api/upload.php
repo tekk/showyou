@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Validate file size
     if ($file['size'] > MAX_FILE_SIZE) {
-        sendError('File too large. Maximum size is 5MB', 400);
+        sendError('File too large. Maximum size is 4GB', 400);
     }
     
     // Validate filename
@@ -28,10 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         sendError('Invalid filename', 400);
     }
     
-    // Validate file extension
+    // Validate file extension - block dangerous file types
     $extension = getFileExtension($safeName);
-    if (!in_array($extension, ALLOWED_EXTENSIONS)) {
-        sendError('File type not allowed. Allowed types: ' . implode(', ', ALLOWED_EXTENSIONS), 400);
+    if (in_array($extension, BLOCKED_EXTENSIONS)) {
+        sendError('File type not allowed for security reasons. Blocked types: ' . implode(', ', BLOCKED_EXTENSIONS), 400);
     }
     
     // Generate unique filename to prevent overwriting
