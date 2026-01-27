@@ -214,11 +214,18 @@ class MarkdownRenderer {
         // Highlight any code blocks that were in the initial HTML
         const codeBlocks = document.querySelectorAll('pre code:not(.hljs)');
         codeBlocks.forEach(block => {
-            const lang = block.className.replace('language-', '');
+            // Extract language from class name (e.g., 'language-javascript')
+            const classes = Array.from(block.classList);
+            const langClass = classes.find(cls => cls.startsWith('language-'));
+            const lang = langClass ? langClass.replace('language-', '') : '';
+            
             if (lang && hljs.getLanguage(lang)) {
                 try {
                     block.innerHTML = hljs.highlight(block.textContent, { language: lang }).value;
-                    block.classList.add('hljs', `language-${lang}`);
+                    block.classList.add('hljs');
+                    if (!block.classList.contains(`language-${lang}`)) {
+                        block.classList.add(`language-${lang}`);
+                    }
                 } catch (err) {
                     console.error('Initial highlight error:', err);
                 }
