@@ -79,7 +79,7 @@ class MarkdownRenderer {
                 <span class="file-name">${note.name}</span>
             `;
             
-            item.addEventListener('click', () => this.loadNote(note));
+            item.addEventListener('click', () => this.loadNote(note, item));
             this.fileListElement.appendChild(item);
             
             this.notes.set(note.name, note);
@@ -100,7 +100,7 @@ class MarkdownRenderer {
         return icons[ext] || '📄';
     }
     
-    async loadNote(note) {
+    async loadNote(note, clickedElement) {
         try {
             // Update UI to show loading
             this.currentFileElement.textContent = note.name;
@@ -112,7 +112,9 @@ class MarkdownRenderer {
             });
             
             // Add active class to clicked item
-            event.target.closest('.file-item').classList.add('active');
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+            }
             
             // Fetch and render the markdown file
             const response = await fetch(note.path);
