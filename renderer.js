@@ -11,22 +11,39 @@ class MarkdownRenderer {
     }
     
     setupMarked() {
-        // Configure marked for GitHub Flavored Markdown
-        marked.setOptions({
-            gfm: true,
-            breaks: true,
-            headerIds: true,
-            mangle: false,
-            highlight: function(code, lang) {
-                if (lang && hljs.getLanguage(lang)) {
+        // Configure marked for GitHub Flavored Markdown with custom renderer
+        const renderer = {
+            code({text, lang}) {
+                const language = lang || '';
+                if (language && hljs.getLanguage(language)) {
                     try {
-                        return hljs.highlight(code, { language: lang }).value;
+                        const highlighted = hljs.highlight(text, { language }).value;
+                        return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
                     } catch (err) {
                         console.error('Highlight error:', err);
                     }
                 }
-                return hljs.highlightAuto(code).value;
+                try {
+                    const highlighted = hljs.highlightAuto(text).value;
+                    return `<pre><code class="hljs">${highlighted}</code></pre>`;
+                } catch (err) {
+                    console.error('Auto-highlight error:', err);
+                    // Escape HTML characters in code
+                    const escaped = text
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                    return `<pre><code>${escaped}</code></pre>`;
+                }
             }
+        };
+        
+        marked.use({
+            renderer,
+            gfm: true,
+            breaks: true
         });
     }
     
@@ -192,9 +209,35 @@ class MarkdownRenderer {
             pre.appendChild(button);
         });
     }
+    
+    highlightInitialCodeBlocks() {
+        // Highlight any code blocks that were in the initial HTML
+        const codeBlocks = document.querySelectorAll('pre code:not(.hljs)');
+        codeBlocks.forEach(block => {
+            const lang = block.className.replace('language-', '');
+            if (lang && hljs.getLanguage(lang)) {
+                try {
+                    block.innerHTML = hljs.highlight(block.textContent, { language: lang }).value;
+                    block.classList.add('hljs', `language-${lang}`);
+                } catch (err) {
+                    console.error('Initial highlight error:', err);
+                }
+            } else {
+                try {
+                    const result = hljs.highlightAuto(block.textContent);
+                    block.innerHTML = result.value;
+                    block.classList.add('hljs');
+                } catch (err) {
+                    console.error('Initial auto-highlight error:', err);
+                }
+            }
+        });
+    }
 }
 
 // Initialize renderer when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new MarkdownRenderer();
+    const renderer = new MarkdownRenderer();
+    // Highlight code blocks in the initial HTML
+    renderer.highlightInitialCodeBlocks();
 });
