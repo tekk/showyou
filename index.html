@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Notes - Dark Mode GFM Renderer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Stars Parallax Background Canvas -->
+    <canvas id="stars-canvas"></canvas>
+    
+    <!-- Main Content -->
+    <div class="container">
+        <header class="header">
+            <h1 class="title">📝 Private Notes</h1>
+            <p class="subtitle">Beautiful Dark Mode Markdown Renderer</p>
+        </header>
+        
+        <div class="content-wrapper">
+            <!-- Sidebar for file index -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>📁 Notes</h2>
+                </div>
+                <div id="file-list" class="file-list">
+                    <div class="loading">Scanning for markdown files...</div>
+                </div>
+            </aside>
+            
+            <!-- Main content area -->
+            <main class="main-content">
+                <div class="content-header">
+                    <h2 id="current-file">Welcome</h2>
+                </div>
+                <article id="markdown-content" class="markdown-body">
+                    <h1>Welcome to Private Notes</h1>
+                    <p>A beautiful dark mode GitHub Flavored Markdown renderer with parallax stars background.</p>
+                    <h2>Features</h2>
+                    <ul>
+                        <li>✨ WebGL shader-based parallax stars background</li>
+                        <li>🌙 Beautiful dark mode design</li>
+                        <li>📝 GitHub Flavored Markdown support</li>
+                        <li>🗂️ Automatic file indexing</li>
+                        <li>🎨 Syntax highlighting for code blocks</li>
+                    </ul>
+                    <h2>Getting Started</h2>
+                    <p>Create markdown files in the <code>notes/</code> directory and they will automatically appear in the sidebar.</p>
+                    <h3>Example Code</h3>
+                    <pre><code class="language-javascript">// Example JavaScript code
+function greet(name) {
+    console.log(`Hello, ${name}!`);
+}
+greet('World');</code></pre>
+                    <blockquote>
+                        <p>Select a note from the sidebar to view its content, or create new markdown files to get started!</p>
+                    </blockquote>
+                </article>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Include libraries and scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/java.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/css.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/xml.min.js"></script>
+    <script src="shader.js"></script>
+    <script src="renderer.js"></script>
+</body>
+</html>

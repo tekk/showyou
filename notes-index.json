@@ -1,0 +1,16 @@
+{
+  "notes": [
+    {
+      "name": "Quick Start Guide",
+      "path": "notes/quickstart.md"
+    },
+    {
+      "name": "Example Note",
+      "path": "notes/example.md"
+    },
+    {
+      "name": "README",
+      "path": "README.md"
+    }
+  ]
+}
