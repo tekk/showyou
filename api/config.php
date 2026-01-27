@@ -41,13 +41,19 @@ function sendError($message, $statusCode = 400) {
     sendResponse(['error' => $message], $statusCode);
 }
 
-// Validate filename to prevent directory traversal
+// Validate and sanitize filename to prevent directory traversal
 function validateFilename($filename) {
     // Remove any path components
     $filename = basename($filename);
     
-    // Check for invalid characters
-    if (preg_match('/[^a-zA-Z0-9._-]/', $filename)) {
+    // Replace spaces with hyphens
+    $filename = str_replace(' ', '-', $filename);
+    
+    // Remove any characters that aren't alphanumeric, dots, hyphens, or underscores
+    $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
+    
+    // Ensure filename is not empty after sanitization
+    if (empty($filename)) {
         return false;
     }
     
