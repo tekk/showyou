@@ -37,7 +37,7 @@ JavaScript, TypeScript, Python, Java, C++, C#, PHP, Ruby, Go, Rust, Swift, Kotli
 
 ## 🚀 Quick Start
 
-### View Locally
+### Static Mode (GitHub Pages)
 
 1. Clone the repository
 2. Serve with any HTTP server:
@@ -48,7 +48,44 @@ JavaScript, TypeScript, Python, Java, C++, C#, PHP, Ruby, Go, Rust, Swift, Kotli
    ```
 3. Open http://localhost:8000
 
+### PHP Backend Mode (with File Uploads)
+
+The PHP backend allows you to upload files directly through the UI and automatically manages the notes index.
+
+#### Using Docker (Recommended)
+
+1. Clone the repository
+2. Start the Docker container:
+   ```bash
+   docker-compose up -d
+   ```
+3. Open http://localhost:8080
+4. Click the "📤 Upload" button to upload markdown files or attachments
+
+#### Using Local PHP
+
+1. Clone the repository
+2. Ensure PHP 8.0+ is installed
+3. Start the PHP development server:
+   ```bash
+   php -S localhost:8080
+   ```
+4. Open http://localhost:8080
+
+**Note**: The application automatically detects whether it's running in static mode or with PHP backend support.
+
 ### Add Your Notes
+
+#### With PHP Backend
+
+1. Click the "📤 Upload" button in the UI
+2. Select a markdown file (.md) or attachment (images, PDFs, etc.)
+3. The file is automatically uploaded and indexed
+4. Markdown files appear in the sidebar immediately
+
+**Supported file types**: .md, .jpg, .jpeg, .png, .gif, .pdf, .txt (max 5MB)
+
+#### Static Mode (Manual)
 
 1. Create `.md` files in the `notes/` directory
 2. Update `notes-index.json`:
@@ -73,6 +110,98 @@ JavaScript, TypeScript, Python, Java, C++, C#, PHP, Ruby, Go, Rust, Swift, Kotli
 *Vivid VS Code-style syntax highlighting*
 
 ## 🛠️ Development
+
+### API Endpoints (PHP Backend)
+
+When running with the PHP backend, the following API endpoints are available:
+
+#### Upload File
+```
+POST /api/upload.php
+Content-Type: multipart/form-data
+
+Form Data:
+- file: File to upload
+
+Response:
+{
+  "success": true,
+  "filename": "2026-01-27_143000_example.md",
+  "originalName": "example.md",
+  "path": "uploads/2026-01-27_143000_example.md",
+  "size": 1024,
+  "type": "md"
+}
+```
+
+#### List Notes
+```
+GET /api/notes.php
+
+Response:
+{
+  "notes": [
+    {
+      "name": "Example Note",
+      "path": "notes/example.md"
+    }
+  ]
+}
+```
+
+#### Create Note
+```
+POST /api/notes.php
+Content-Type: application/json
+
+Body:
+{
+  "name": "My Note",
+  "content": "# My Note\n\nContent here"
+}
+
+Response:
+{
+  "success": true,
+  "name": "My Note",
+  "path": "notes/2026-01-27_143000_My-Note.md"
+}
+```
+
+#### Update Note
+```
+PUT /api/notes.php
+Content-Type: application/json
+
+Body:
+{
+  "path": "notes/example.md",
+  "content": "# Updated content"
+}
+
+Response:
+{
+  "success": true,
+  "path": "notes/example.md"
+}
+```
+
+#### Delete Note
+```
+DELETE /api/notes.php
+Content-Type: application/json
+
+Body:
+{
+  "path": "notes/example.md"
+}
+
+Response:
+{
+  "success": true,
+  "path": "notes/example.md"
+}
+```
 
 ### Build Highlight.js Bundle
 
@@ -137,9 +266,42 @@ git push origin main:gh-pages
 
 ## 🔒 Security
 
-- ✅ CodeQL security scan passed
-- ✅ No vulnerabilities in custom code
-- ✅ Safe third-party libraries (marked.js, highlight.js)
+### Security Features
+
+- ✅ **File Type Validation**: Only allowed file extensions can be uploaded
+- ✅ **File Size Limits**: Maximum 5MB per file
+- ✅ **Path Traversal Prevention**: Filenames are sanitized to prevent directory traversal attacks
+- ✅ **Unique Filenames**: Uploaded files are timestamped to prevent overwriting
+- ✅ **Input Sanitization**: All user input is validated and sanitized
+- ✅ **CodeQL Security Scan**: Passed security analysis
+- ✅ **No Vulnerabilities**: Safe third-party libraries (marked.js, highlight.js)
+
+### PHP Backend Security
+
+The PHP backend implements multiple security measures:
+
+- File type whitelist (only allowed extensions)
+- File size validation (max 5MB)
+- Filename sanitization (prevents directory traversal)
+- Path validation (ensures files stay within allowed directories)
+- Unique filename generation (prevents overwriting existing files)
+- Thread-safe index updates with file locking (prevents race conditions)
+- Atomic file operations (prevents data corruption)
+
+**Production CORS Configuration:**
+
+For production deployments, restrict CORS access by setting the `ALLOWED_ORIGINS` environment variable:
+
+```bash
+# Docker
+docker run -e ALLOWED_ORIGINS="https://yourdomain.com" ...
+
+# Docker Compose
+environment:
+  - ALLOWED_ORIGINS=https://yourdomain.com
+```
+
+By default, CORS is set to `*` (allow all origins) for development convenience.
 
 ## 📄 License
 
@@ -153,4 +315,4 @@ ISC
 
 ---
 
-*Created with ❤️ for beautiful note-taking*
+*Created with ❤️ by Peter OM7TEK*
