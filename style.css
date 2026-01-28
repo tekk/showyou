@@ -779,7 +779,7 @@ pre,
 
 .lolcat-progress-bar {
     width: 100%;
-    height: 40px;
+    height: 20px;
     background: linear-gradient(90deg, 
         rgba(255, 0, 0, 0.1) 0%, 
         rgba(255, 127, 0, 0.1) 14%, 
@@ -789,11 +789,11 @@ pre,
         rgba(75, 0, 130, 0.1) 71%, 
         rgba(148, 0, 211, 0.1) 85%, 
         rgba(255, 0, 0, 0.1) 100%);
-    border-radius: 20px;
+    border-radius: 10px;
     overflow: visible;
     position: relative;
-    border: 2px solid var(--border-color);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .lolcat-progress-fill {
@@ -809,10 +809,10 @@ pre,
         #9400d3 85%, 
         #ff0000 100%);
     background-size: 200% 100%;
-    border-radius: 18px;
+    border-radius: 9px;
     transition: width 0.3s ease;
     animation: lolcatAnimation 3s linear infinite;
-    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
 }
 
 @keyframes lolcatAnimation {
@@ -829,40 +829,25 @@ pre,
     top: 50%;
     left: 0%;
     transform: translate(-50%, -50%);
-    font-size: 2rem;
+    width: 40px;
+    height: 40px;
     transition: left 0.3s ease;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-    animation: catBounce 0.5s ease-in-out infinite;
 }
 
-@keyframes catBounce {
-    0%, 100% {
-        transform: translate(-50%, -50%) translateY(0);
-    }
-    50% {
-        transform: translate(-50%, -50%) translateY(-5px);
-    }
+.lolcat-cat img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .upload-percentage {
     text-align: center;
-    font-size: 1.5rem;
-    font-weight: 700;
-    background: linear-gradient(90deg, 
-        #ff0000 0%, 
-        #ff7f00 14%, 
-        #ffff00 28%, 
-        #00ff00 42%, 
-        #0000ff 57%, 
-        #4b0082 71%, 
-        #9400d3 85%, 
-        #ff0000 100%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: lolcatAnimation 3s linear infinite;
-    margin-top: 1rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #ffffff;
+    margin-top: 0.5rem;
 }
 
 /* Update sidebar header to be flex */

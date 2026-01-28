@@ -1,0 +1,92 @@
+<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1">
+        <animate attributeName="offset" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="14%" style="stop-color:#ff7f00;stop-opacity:1">
+        <animate attributeName="offset" values="0.14;1;0.14" dur="2s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="28%" style="stop-color:#ffff00;stop-opacity:1">
+        <animate attributeName="offset" values="0.28;1;0.28" dur="2s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="42%" style="stop-color:#00ff00;stop-opacity:1">
+        <animate attributeName="offset" values="0.42;1;0.42" dur="2s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="57%" style="stop-color:#0000ff;stop-opacity:1">
+        <animate attributeName="offset" values="0.57;1;0.57" dur="2s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="71%" style="stop-color:#4b0082;stop-opacity:1">
+        <animate attributeName="offset" values="0.71;1;0.71" dur="2s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="85%" style="stop-color:#9400d3;stop-opacity:1">
+        <animate attributeName="offset" values="0.85;1;0.85" dur="2s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" style="stop-color:#ff0000;stop-opacity:1">
+        <animate attributeName="offset" values="1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+    </linearGradient>
+    
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Rainbow trail -->
+  <path d="M 10,50 Q 30,30 50,50" stroke="url(#rainbow)" stroke-width="8" fill="none" opacity="0.6" filter="url(#glow)">
+    <animate attributeName="d" 
+             values="M 10,50 Q 30,30 50,50;M 10,50 Q 30,70 50,50;M 10,50 Q 30,30 50,50" 
+             dur="1s" 
+             repeatCount="indefinite"/>
+  </path>
+  
+  <!-- Cat body -->
+  <ellipse cx="60" cy="50" rx="15" ry="12" fill="#ff9933" filter="url(#glow)">
+    <animate attributeName="cy" values="50;48;50" dur="0.6s" repeatCount="indefinite"/>
+  </ellipse>
+  
+  <!-- Cat head -->
+  <circle cx="70" cy="45" r="10" fill="#ff9933" filter="url(#glow)">
+    <animate attributeName="cy" values="45;43;45" dur="0.6s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Cat ears -->
+  <polygon points="65,38 67,32 70,38" fill="#ff7700">
+    <animate attributeName="points" values="65,38 67,32 70,38;65,36 67,30 70,36;65,38 67,32 70,38" dur="0.6s" repeatCount="indefinite"/>
+  </polygon>
+  <polygon points="73,38 75,32 78,38" fill="#ff7700">
+    <animate attributeName="points" values="73,38 75,32 78,38;73,36 75,30 78,36;73,38 75,32 78,38" dur="0.6s" repeatCount="indefinite"/>
+  </polygon>
+  
+  <!-- Cat eyes -->
+  <circle cx="67" cy="44" r="2" fill="#000">
+    <animate attributeName="cy" values="44;42;44" dur="0.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="73" cy="44" r="2" fill="#000">
+    <animate attributeName="cy" values="44;42;44" dur="0.6s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Cat tail with rainbow effect -->
+  <path d="M 50,55 Q 40,60 35,50" stroke="url(#rainbow)" stroke-width="4" fill="none" filter="url(#glow)">
+    <animate attributeName="d" 
+             values="M 50,55 Q 40,60 35,50;M 50,55 Q 40,50 35,55;M 50,55 Q 40,60 35,50" 
+             dur="0.8s" 
+             repeatCount="indefinite"/>
+  </path>
+  
+  <!-- Sparkles -->
+  <circle cx="80" cy="35" r="2" fill="#ffffff" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="2;1;2" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="85" cy="55" r="1.5" fill="#ffff00" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="75" cy="60" r="1.5" fill="#00ffff" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+</svg>
