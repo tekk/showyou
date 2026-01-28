@@ -13,9 +13,9 @@ Options -Indexes
     Deny from all
 </Files>
 
-# Set upload limits
-php_value upload_max_filesize 5M
-php_value post_max_size 5M
+# Set upload limits (4GB for FAT32 compatibility)
+php_value upload_max_filesize 4G
+php_value post_max_size 4G
 
 # Enable CORS for API
 <IfModule mod_headers.c>

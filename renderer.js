@@ -81,36 +81,155 @@ class MarkdownRenderer {
         const formData = new FormData();
         formData.append('file', file);
         
+        // Get UI elements for progress tracking
+        const progressFill = document.getElementById('lolcat-progress-fill');
+        const progressCat = document.querySelector('.lolcat-cat');
+        const percentageText = document.getElementById('upload-percentage');
+        const filenameText = document.getElementById('upload-filename');
+        const filesizeText = document.getElementById('upload-filesize');
+        const uploadedText = document.getElementById('upload-uploaded');
+        const speedText = document.getElementById('upload-speed');
+        const timeText = document.getElementById('upload-time');
+        
+        // Minimum time difference for accurate speed calculation (in seconds)
+        const MIN_TIME_DIFF_FOR_SPEED_CALC = 0.1;
+        
         try {
+            // Show progress UI and hide form
             progressDiv.style.display = 'block';
             form.style.display = 'none';
             
-            const response = await fetch('api/upload.php', {
-                method: 'POST',
-                body: formData
+            // Set initial values
+            filenameText.textContent = file.name;
+            filesizeText.textContent = this.formatFileSize(file.size);
+            uploadedText.textContent = '0 B';
+            speedText.textContent = '0 B/s';
+            timeText.textContent = 'Calculating...';
+            percentageText.textContent = '0%';
+            
+            // Upload with progress tracking using XMLHttpRequest
+            const startTime = Date.now();
+            let lastLoaded = 0;
+            let lastTime = startTime;
+            
+            const result = await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentage = (e.loaded / e.total) * 100;
+                        const currentTime = Date.now();
+                        const timeDiff = (currentTime - lastTime) / 1000; // seconds
+                        const loadedDiff = e.loaded - lastLoaded;
+                        
+                        // Update progress bar
+                        progressFill.style.width = percentage + '%';
+                        progressCat.style.left = percentage + '%';
+                        percentageText.textContent = Math.round(percentage) + '%';
+                        
+                        // Update statistics
+                        uploadedText.textContent = this.formatFileSize(e.loaded);
+                        
+                        // Calculate speed (only if enough time has passed)
+                        if (timeDiff > MIN_TIME_DIFF_FOR_SPEED_CALC) {
+                            const speed = loadedDiff / timeDiff;
+                            speedText.textContent = this.formatFileSize(speed) + '/s';
+                            
+                            // Calculate time remaining
+                            const remaining = e.total - e.loaded;
+                            const timeRemaining = remaining / speed;
+                            timeText.textContent = this.formatTime(timeRemaining);
+                            
+                            lastLoaded = e.loaded;
+                            lastTime = currentTime;
+                        }
+                    }
+                });
+                
+                xhr.addEventListener('load', () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            resolve(JSON.parse(xhr.responseText));
+                        } catch (e) {
+                            reject(new Error('Invalid response from server'));
+                        }
+                    } else {
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            reject(new Error(errorData.error || 'Upload failed'));
+                        } catch (e) {
+                            reject(new Error('Upload failed with status: ' + xhr.status));
+                        }
+                    }
+                });
+                
+                xhr.addEventListener('error', () => {
+                    reject(new Error('Network error during upload'));
+                });
+                
+                xhr.addEventListener('abort', () => {
+                    reject(new Error('Upload cancelled'));
+                });
+                
+                xhr.open('POST', 'api/upload.php');
+                xhr.send(formData);
             });
             
-            const result = await response.json();
+            // Upload complete
+            progressFill.style.width = '100%';
+            progressCat.style.left = '100%';
+            percentageText.textContent = '100%';
+            speedText.textContent = this.formatFileSize(file.size / ((Date.now() - startTime) / 1000)) + '/s';
+            timeText.textContent = 'Complete!';
             
-            if (!response.ok) {
-                throw new Error(result.error || 'Upload failed');
-            }
-            
-            alert(`File uploaded successfully: ${result.filename}`);
-            uploadModal.style.display = 'none';
-            form.style.display = 'block';
-            progressDiv.style.display = 'none';
-            form.reset();
-            
-            // Reload notes list
-            await this.loadNotes();
+            // Show success message
+            setTimeout(() => {
+                alert(`File uploaded successfully: ${result.filename}`);
+                uploadModal.style.display = 'none';
+                form.style.display = 'block';
+                progressDiv.style.display = 'none';
+                form.reset();
+                
+                // Reset progress UI
+                progressFill.style.width = '0%';
+                progressCat.style.left = '0%';
+                
+                // Reload notes list
+                this.loadNotes();
+            }, 500);
             
         } catch (error) {
             console.error('Upload error:', error);
             alert('Upload failed: ' + error.message);
             form.style.display = 'block';
             progressDiv.style.display = 'none';
+            
+            // Reset progress UI
+            progressFill.style.width = '0%';
+            progressCat.style.left = '0%';
         }
+    }
+    
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    formatTime(seconds) {
+        if (!isFinite(seconds) || seconds <= 0) return 'Calculating...';
+        if (seconds < 1) return '< 1s';
+        if (seconds < 60) return Math.round(seconds) + 's';
+        if (seconds < 3600) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.round(seconds % 60);
+            return `${minutes}m ${secs}s`;
+        }
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        return `${hours}h ${minutes}m`;
     }
     
     setupMarked() {

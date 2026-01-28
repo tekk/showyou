@@ -21,9 +21,10 @@ define('NOTES_DIR', BASE_DIR . '/notes');
 define('UPLOADS_DIR', BASE_DIR . '/uploads');
 define('INDEX_FILE', BASE_DIR . '/notes-index.json');
 
-// Allowed file types for uploads
-define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'txt', 'md']);
-define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
+// Blocked file types that could harm the server
+// Block executable and server-side script files
+define('BLOCKED_EXTENSIONS', ['php', 'phtml', 'php3', 'php4', 'php5', 'php7', 'phps', 'pht', 'phar', 'exe', 'com', 'bat', 'cmd', 'sh', 'bash', 'cgi', 'pl', 'py', 'rb', 'asp', 'aspx', 'jsp', 'jspx', 'dll', 'so', 'dylib']);
+define('MAX_FILE_SIZE', (4 * 1024 * 1024 * 1024) - 1); // 4GB - 1 byte (FAT32 max file size)
 
 // Create directories if they don't exist
 if (!is_dir(NOTES_DIR)) {
