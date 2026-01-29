@@ -26,6 +26,20 @@
 - Blockquotes, lists, images
 - Autolinks and more
 
+### ✏️ Rich Note Editor (Backend Mode)
+- **Monaco Editor** integration (VSCode source code editor)
+- Live markdown preview with tab switching
+- Create, edit, and delete notes through the UI
+- Custom slugs for sharing notes with clean URLs
+- Auto-insert file references when uploading
+
+### 📤 Smart File Uploads (Backend Mode)
+- Upload any file type (images, PDFs, videos, etc.) up to 4GB
+- Automatic file reference insertion into notes
+- Non-blocking uploads while editing
+- Beautiful "lolcat" progress bar with real-time stats
+- Support for markdown image and link references
+
 ### 🎨 Vivid Syntax Highlighting
 - **23+ programming languages** supported
 - VS Code-style color scheme
@@ -78,10 +92,29 @@ The PHP backend allows you to upload files directly through the UI and automatic
 
 #### With PHP Backend
 
+**Create Notes:**
+1. Click the "➕ New" button in the sidebar
+2. Enter a title and optional custom slug for sharing
+3. Write your content using the Monaco editor (VSCode-based)
+4. Switch between Edit and Preview tabs to see how it looks
+5. Click "💾 Save" to save your note
+
+**Upload Files:**
 1. Click the "📤 Upload" button in the UI
 2. Select any file (markdown, images, PDFs, videos, archives, etc.)
-3. The file is automatically uploaded and indexed
-4. Markdown files appear in the sidebar immediately
+3. If you're editing a note, the file reference will be automatically inserted
+4. The file is automatically uploaded and indexed
+5. Markdown files appear in the sidebar immediately
+
+**Edit/Delete Notes:**
+- Hover over any note in the sidebar to see edit (✏️) and delete (🗑️) buttons
+- Click edit to modify the note content
+- Click delete to remove the note (with confirmation)
+
+**Reference Uploaded Files in Markdown:**
+- Images: `![Alt text](filename.jpg)` or `![Alt text](uploads/filename.jpg)`
+- Documents: `[Document name](filename.pdf)` or `[Document name](uploads/filename.pdf)`
+- Files are automatically linked when uploaded during note editing
 
 **File restrictions**: Maximum file size is 4GB (FAT32 limit). Executable and server-side script files are blocked for security.
 
