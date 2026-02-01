@@ -22,9 +22,14 @@
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <h2>📁 Notes</h2>
-                    <button id="upload-button" class="upload-button" style="display: none;">
-                        📤 Upload
-                    </button>
+                    <div class="sidebar-actions">
+                        <button id="new-note-button" class="action-button" title="Create new note">
+                            ➕ New
+                        </button>
+                        <button id="upload-button" class="upload-button" style="display: none;">
+                            📤 Upload
+                        </button>
+                    </div>
                 </div>
                 <div id="file-list" class="file-list">
                     <div class="loading">Scanning for markdown files...</div>
@@ -113,9 +118,41 @@ greet('World');</code></pre>
         </div>
     </div>
     
+    <!-- Note Editor Modal -->
+    <div id="editor-modal" class="modal" style="display: none;">
+        <div class="modal-content editor-modal-content">
+            <div class="editor-header">
+                <h2 id="editor-title">Create Note</h2>
+                <span class="close" id="editor-close">&times;</span>
+            </div>
+            <div class="editor-toolbar">
+                <input type="text" id="note-title-input" placeholder="Note title..." class="note-title-input">
+                <input type="text" id="note-slug-input" placeholder="Custom slug (optional)..." class="note-slug-input">
+                <div class="editor-tabs">
+                    <button id="tab-edit" class="tab-button active">✏️ Edit</button>
+                    <button id="tab-preview" class="tab-button">👁️ Preview</button>
+                </div>
+            </div>
+            <div class="editor-content">
+                <div id="editor-edit-pane" class="editor-pane active">
+                    <div id="monaco-editor"></div>
+                </div>
+                <div id="editor-preview-pane" class="editor-pane markdown-body">
+                    <p class="preview-placeholder">Preview will appear here...</p>
+                </div>
+            </div>
+            <div class="editor-footer">
+                <button id="editor-save" class="btn-primary">💾 Save</button>
+                <button id="editor-cancel" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Include libraries and scripts -->
     <script src="lib/marked.min.js"></script>
     <script src="lib/highlight.bundle.js"></script>
+    <!-- Monaco Editor -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
     <script src="shader.js"></script>
     <script src="renderer.js"></script>
 </body>

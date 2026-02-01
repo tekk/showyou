@@ -6,10 +6,13 @@ class MarkdownRenderer {
         this.currentFileElement = document.getElementById('current-file');
         this.notes = new Map();
         this.backendMode = false; // Will be detected automatically
+        this.monacoEditor = null;
+        this.currentEditingNote = null;
         
         this.setupMarked();
         this.detectBackendMode();
         this.setupUploadUI();
+        this.setupEditorUI();
         this.loadNotes();
     }
     
@@ -33,6 +36,7 @@ class MarkdownRenderer {
         const closeModal = uploadModal?.querySelector('.close');
         const cancelButton = document.getElementById('cancel-upload');
         const uploadForm = document.getElementById('upload-form');
+        const newNoteButton = document.getElementById('new-note-button');
         
         // Show upload button only in backend mode
         setTimeout(() => {
@@ -40,6 +44,11 @@ class MarkdownRenderer {
                 uploadButton.style.display = 'inline-block';
             }
         }, 100);
+        
+        // New note button - always visible
+        newNoteButton?.addEventListener('click', () => {
+            this.openEditor();
+        });
         
         if (!uploadButton || !uploadModal) return;
         
@@ -182,9 +191,21 @@ class MarkdownRenderer {
             speedText.textContent = this.formatFileSize(file.size / ((Date.now() - startTime) / 1000)) + '/s';
             timeText.textContent = 'Complete!';
             
+            // Insert file reference into editor if it's open
+            if (this.monacoEditor && document.getElementById('editor-modal').style.display === 'flex') {
+                const fileRef = this.generateFileReference(result);
+                const position = this.monacoEditor.getPosition();
+                const range = new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column);
+                this.monacoEditor.executeEdits('', [{
+                    range: range,
+                    text: fileRef,
+                    forceMoveMarkers: true
+                }]);
+            }
+            
             // Show success message
             setTimeout(() => {
-                alert(`File uploaded successfully: ${result.filename}`);
+                alert(`File uploaded successfully: ${result.filename}\n\nFile reference has been inserted into the editor.`);
                 uploadModal.style.display = 'none';
                 form.style.display = 'block';
                 progressDiv.style.display = 'none';
@@ -210,6 +231,20 @@ class MarkdownRenderer {
         }
     }
     
+    generateFileReference(uploadResult) {
+        const { filename, type, originalName } = uploadResult;
+        const path = `uploads/${filename}`;
+        
+        // Determine if it's an image
+        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'];
+        if (imageExts.includes(type.toLowerCase())) {
+            return `\n![${originalName}](${path})\n`;
+        }
+        
+        // For other files, create a link
+        return `\n[${originalName}](${path})\n`;
+    }
+    
     formatFileSize(bytes) {
         if (bytes === 0) return '0 B';
         const k = 1024;
@@ -230,6 +265,299 @@ class MarkdownRenderer {
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
         return `${hours}h ${minutes}m`;
+    }
+    
+    setupEditorUI() {
+        const editorModal = document.getElementById('editor-modal');
+        const closeBtn = document.getElementById('editor-close');
+        const cancelBtn = document.getElementById('editor-cancel');
+        const saveBtn = document.getElementById('editor-save');
+        const tabEdit = document.getElementById('tab-edit');
+        const tabPreview = document.getElementById('tab-preview');
+        const editPane = document.getElementById('editor-edit-pane');
+        const previewPane = document.getElementById('editor-preview-pane');
+        const titleInput = document.getElementById('note-title-input');
+        
+        if (!editorModal) return;
+        
+        // Close modal
+        closeBtn?.addEventListener('click', () => {
+            this.closeEditor();
+        });
+        
+        cancelBtn?.addEventListener('click', () => {
+            this.closeEditor();
+        });
+        
+        window.addEventListener('click', (event) => {
+            if (event.target === editorModal) {
+                this.closeEditor();
+            }
+        });
+        
+        // Tab switching
+        tabEdit?.addEventListener('click', () => {
+            tabEdit.classList.add('active');
+            tabPreview.classList.remove('active');
+            editPane.classList.add('active');
+            previewPane.classList.remove('active');
+        });
+        
+        tabPreview?.addEventListener('click', () => {
+            tabPreview.classList.add('active');
+            tabEdit.classList.remove('active');
+            previewPane.classList.add('active');
+            editPane.classList.remove('active');
+            this.updatePreview();
+        });
+        
+        // Save button
+        saveBtn?.addEventListener('click', async () => {
+            await this.saveNote();
+        });
+        
+        // Auto-update slug from title
+        titleInput?.addEventListener('input', (e) => {
+            const slugInput = document.getElementById('note-slug-input');
+            if (!this.currentEditingNote && slugInput && !slugInput.value) {
+                // Only auto-generate slug for new notes if user hasn't set custom slug
+                const slug = e.target.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                slugInput.value = slug;
+            }
+        });
+        
+        // Initialize Monaco Editor
+        this.initMonacoEditor();
+    }
+    
+    initMonacoEditor() {
+        if (typeof require === 'undefined') {
+            // Monaco loader
+            require.config({ 
+                paths: { 
+                    'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' 
+                } 
+            });
+            
+            require(['vs/editor/editor.main'], () => {
+                this.createMonacoEditor();
+            });
+        } else {
+            setTimeout(() => this.initMonacoEditor(), 100);
+        }
+    }
+    
+    createMonacoEditor() {
+        const container = document.getElementById('monaco-editor');
+        if (!container || this.monacoEditor) return;
+        
+        this.monacoEditor = monaco.editor.create(container, {
+            value: '',
+            language: 'markdown',
+            theme: 'vs-dark',
+            automaticLayout: true,
+            wordWrap: 'on',
+            minimap: { enabled: true },
+            fontSize: 14,
+            lineNumbers: 'on',
+            scrollBeyondLastLine: false,
+            folding: true,
+            renderWhitespace: 'selection'
+        });
+    }
+    
+    openEditor(note = null) {
+        const editorModal = document.getElementById('editor-modal');
+        const titleInput = document.getElementById('note-title-input');
+        const slugInput = document.getElementById('note-slug-input');
+        const editorTitle = document.getElementById('editor-title');
+        const tabEdit = document.getElementById('tab-edit');
+        const tabPreview = document.getElementById('tab-preview');
+        const editPane = document.getElementById('editor-edit-pane');
+        const previewPane = document.getElementById('editor-preview-pane');
+        
+        if (!editorModal) return;
+        
+        this.currentEditingNote = note;
+        
+        // Reset tabs to edit mode
+        tabEdit.classList.add('active');
+        tabPreview.classList.remove('active');
+        editPane.classList.add('active');
+        previewPane.classList.remove('active');
+        
+        if (note) {
+            // Edit mode
+            editorTitle.textContent = 'Edit Note';
+            titleInput.value = note.name;
+            slugInput.value = note.slug || '';
+            
+            // Load note content
+            this.loadNoteContent(note).then(content => {
+                if (this.monacoEditor) {
+                    this.monacoEditor.setValue(content);
+                }
+            });
+        } else {
+            // Create mode
+            editorTitle.textContent = 'Create Note';
+            titleInput.value = '';
+            slugInput.value = '';
+            if (this.monacoEditor) {
+                this.monacoEditor.setValue('# New Note\n\nStart writing...\n');
+            }
+        }
+        
+        editorModal.style.display = 'flex';
+        
+        // Focus title input
+        setTimeout(() => titleInput.focus(), 100);
+    }
+    
+    closeEditor() {
+        const editorModal = document.getElementById('editor-modal');
+        if (editorModal) {
+            editorModal.style.display = 'none';
+        }
+        this.currentEditingNote = null;
+    }
+    
+    updatePreview() {
+        const previewPane = document.getElementById('editor-preview-pane');
+        if (!this.monacoEditor || !previewPane) return;
+        
+        const markdown = this.monacoEditor.getValue();
+        const html = marked.parse(markdown);
+        previewPane.innerHTML = html;
+        
+        // Add copy buttons to code blocks in preview
+        this.addCopyButtonsToElement(previewPane);
+    }
+    
+    async loadNoteContent(note) {
+        try {
+            const response = await fetch(note.path);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.text();
+        } catch (error) {
+            console.error('Error loading note content:', error);
+            return '# Error\n\nFailed to load note content.';
+        }
+    }
+    
+    async saveNote() {
+        const titleInput = document.getElementById('note-title-input');
+        const slugInput = document.getElementById('note-slug-input');
+        
+        const title = titleInput.value.trim();
+        const slug = slugInput.value.trim();
+        const content = this.monacoEditor ? this.monacoEditor.getValue() : '';
+        
+        if (!title) {
+            alert('Please enter a note title');
+            return;
+        }
+        
+        if (!content.trim()) {
+            alert('Please enter some content');
+            return;
+        }
+        
+        try {
+            if (this.currentEditingNote) {
+                // Update existing note
+                await this.updateNote(this.currentEditingNote.path, content);
+            } else {
+                // Create new note
+                await this.createNote(title, content, slug);
+            }
+            
+            this.closeEditor();
+            await this.loadNotes();
+        } catch (error) {
+            console.error('Error saving note:', error);
+            alert('Failed to save note: ' + error.message);
+        }
+    }
+    
+    async createNote(name, content, slug = '') {
+        if (!this.backendMode) {
+            alert('Note creation is only available in backend mode');
+            return;
+        }
+        
+        const response = await fetch('api/notes.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, content, slug })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to create note');
+        }
+        
+        return await response.json();
+    }
+    
+    async updateNote(path, content) {
+        if (!this.backendMode) {
+            alert('Note updating is only available in backend mode');
+            return;
+        }
+        
+        const response = await fetch('api/notes.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ path, content })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to update note');
+        }
+        
+        return await response.json();
+    }
+    
+    async deleteNote(note) {
+        if (!this.backendMode) {
+            alert('Note deletion is only available in backend mode');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to delete "${note.name}"?`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('api/notes.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ path: note.path })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete note');
+            }
+            
+            await this.loadNotes();
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            alert('Failed to delete note: ' + error.message);
+        }
     }
     
     setupMarked() {
@@ -259,6 +587,38 @@ class MarkdownRenderer {
                         .replace(/'/g, '&#039;');
                     return `<pre><code>${escaped}</code></pre>`;
                 }
+            },
+            image({href, title, text}) {
+                // Support both absolute and relative paths
+                // If href starts with uploads/ or notes/, it's a reference to uploaded file
+                let src = href;
+                if (!href.startsWith('http') && !href.startsWith('/') && !href.startsWith('data:')) {
+                    // Relative path - check if it's in uploads or notes
+                    if (href.startsWith('uploads/') || href.startsWith('notes/')) {
+                        src = href;
+                    } else {
+                        // Assume it's in uploads
+                        src = 'uploads/' + href;
+                    }
+                }
+                
+                const titleAttr = title ? ` title="${title}"` : '';
+                const alt = text || '';
+                return `<img src="${src}" alt="${alt}"${titleAttr} loading="lazy" />`;
+            },
+            link({href, title, text}) {
+                // Support references to uploaded files
+                let url = href;
+                if (!href.startsWith('http') && !href.startsWith('/') && !href.startsWith('#') && !href.startsWith('data:')) {
+                    if (!href.startsWith('uploads/') && !href.startsWith('notes/')) {
+                        url = 'uploads/' + href;
+                    }
+                }
+                
+                const titleAttr = title ? ` title="${title}"` : '';
+                // Open PDFs and other documents in new tab
+                const target = url.match(/\.(pdf|docx?|xlsx?|pptx?|zip|rar)$/i) ? ' target="_blank" rel="noopener"' : '';
+                return `<a href="${url}"${titleAttr}${target}>${text}</a>`;
             }
         };
         
@@ -325,12 +685,44 @@ class MarkdownRenderer {
             item.className = 'file-item';
             
             const icon = this.getFileIcon(note.name);
-            item.innerHTML = `
+            
+            const content = document.createElement('div');
+            content.className = 'file-item-content';
+            content.innerHTML = `
                 <span class="file-icon">${icon}</span>
                 <span class="file-name">${note.name}</span>
             `;
             
-            item.addEventListener('click', () => this.loadNote(note, item));
+            const actions = document.createElement('div');
+            actions.className = 'file-item-actions';
+            
+            if (this.backendMode) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'file-action-btn edit';
+                editBtn.innerHTML = '✏️';
+                editBtn.title = 'Edit';
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.openEditor(note);
+                });
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'file-action-btn delete';
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.title = 'Delete';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.deleteNote(note);
+                });
+                
+                actions.appendChild(editBtn);
+                actions.appendChild(deleteBtn);
+            }
+            
+            content.addEventListener('click', () => this.loadNote(note, item));
+            
+            item.appendChild(content);
+            item.appendChild(actions);
             this.fileListElement.appendChild(item);
             
             this.notes.set(note.name, note);
@@ -408,7 +800,11 @@ class MarkdownRenderer {
     }
     
     addCopyButtons() {
-        const codeBlocks = this.contentElement.querySelectorAll('pre code');
+        this.addCopyButtonsToElement(this.contentElement);
+    }
+    
+    addCopyButtonsToElement(element) {
+        const codeBlocks = element.querySelectorAll('pre code');
         codeBlocks.forEach((block, index) => {
             const pre = block.parentElement;
             

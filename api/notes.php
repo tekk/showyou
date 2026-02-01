@@ -25,6 +25,7 @@ if ($method === 'POST') {
     
     $name = trim($input['name']);
     $content = $input['content'];
+    $slug = isset($input['slug']) ? trim($input['slug']) : '';
     
     // Validate name
     $safeName = validateFilename($name);
@@ -37,8 +38,21 @@ if ($method === 'POST') {
         $safeName .= '.md';
     }
     
-    // Create unique filename
-    $filename = date('Y-m-d_His') . '_' . $safeName;
+    // Create filename - use slug if provided, otherwise use timestamped name
+    if ($slug) {
+        $safeSlug = validateFilename($slug);
+        if (!$safeSlug) {
+            sendError('Invalid slug', 400);
+        }
+        $filename = $safeSlug . '.md';
+        // Check if slug already exists
+        if (file_exists(NOTES_DIR . '/' . $filename)) {
+            sendError('A note with this slug already exists', 400);
+        }
+    } else {
+        $filename = date('Y-m-d_His') . '_' . $safeName;
+    }
+    
     $filePath = NOTES_DIR . '/' . $filename;
     
     // Save note content
@@ -47,11 +61,15 @@ if ($method === 'POST') {
     }
     
     // Update index using thread-safe function
-    $success = updateIndexFile(function($index) use ($name, $filename) {
-        $index['notes'][] = [
+    $success = updateIndexFile(function($index) use ($name, $filename, $slug) {
+        $noteData = [
             'name' => $name,
             'path' => 'notes/' . $filename
         ];
+        if ($slug) {
+            $noteData['slug'] = $slug;
+        }
+        $index['notes'][] = $noteData;
         return $index;
     });
     
@@ -65,7 +83,8 @@ if ($method === 'POST') {
     sendResponse([
         'success' => true,
         'name' => $name,
-        'path' => 'notes/' . $filename
+        'path' => 'notes/' . $filename,
+        'slug' => $slug
     ], 201);
 }
 
