@@ -79,11 +79,11 @@ The PHP backend allows you to upload files directly through the UI and automatic
 #### With PHP Backend
 
 1. Click the "📤 Upload" button in the UI
-2. Select a markdown file (.md) or attachment (images, PDFs, etc.)
+2. Select any file (markdown, images, PDFs, videos, archives, etc.)
 3. The file is automatically uploaded and indexed
 4. Markdown files appear in the sidebar immediately
 
-**Supported file types**: .md, .jpg, .jpeg, .png, .gif, .pdf, .txt (max 5MB)
+**File restrictions**: Maximum file size is 4GB (FAT32 limit). Executable and server-side script files are blocked for security.
 
 #### Static Mode (Manual)
 
@@ -268,8 +268,8 @@ git push origin main:gh-pages
 
 ### Security Features
 
-- ✅ **File Type Validation**: Only allowed file extensions can be uploaded
-- ✅ **File Size Limits**: Maximum 5MB per file
+- ✅ **File Type Validation**: Dangerous file types (executables, server scripts) are blocked
+- ✅ **File Size Limits**: Maximum 4GB per file (FAT32 limit)
 - ✅ **Path Traversal Prevention**: Filenames are sanitized to prevent directory traversal attacks
 - ✅ **Unique Filenames**: Uploaded files are timestamped to prevent overwriting
 - ✅ **Input Sanitization**: All user input is validated and sanitized
@@ -280,8 +280,8 @@ git push origin main:gh-pages
 
 The PHP backend implements multiple security measures:
 
-- File type whitelist (only allowed extensions)
-- File size validation (max 5MB)
+- File type blocklist (prevents dangerous executables and server scripts)
+- File size validation (max 4GB - FAT32 limit)
 - Filename sanitization (prevents directory traversal)
 - Path validation (ensures files stay within allowed directories)
 - Unique filename generation (prevents overwriting existing files)
