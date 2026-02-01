@@ -1,6 +1,6 @@
 # 📝 Private Notes
 
-**A beautiful dark mode GitHub Flavored Markdown renderer with WebGL shader-based parallax stars background and vivid VS Code-style syntax highlighting.**
+**GitHub Flavored Markdown renderer with VS Code-style syntax highlighting.**
 
 ![Private Notes](https://img.shields.io/badge/Status-Complete-success)
 ![WebGL](https://img.shields.io/badge/WebGL-1.0-blue)
@@ -348,4 +348,4 @@ ISC
 
 ---
 
-*Created with ❤️ by Peter OM7TEK*
+*Created with ❤️ by Peter @tekk OM7TEK*
