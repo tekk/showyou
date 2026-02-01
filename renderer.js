@@ -334,8 +334,8 @@ class MarkdownRenderer {
     }
     
     initMonacoEditor() {
-        if (typeof require === 'undefined') {
-            // Monaco loader
+        if (typeof require !== 'undefined') {
+            // Monaco loader is ready
             require.config({ 
                 paths: { 
                     'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' 
@@ -346,6 +346,7 @@ class MarkdownRenderer {
                 this.createMonacoEditor();
             });
         } else {
+            // Wait for Monaco loader to be available
             setTimeout(() => this.initMonacoEditor(), 100);
         }
     }
