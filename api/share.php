@@ -64,16 +64,23 @@ if ($method === 'GET') {
     // If burn after reading, delete the note atomically
     if ($burnAfterReading) {
         // Delete file
-        @unlink($fullPath);
+        $deleteSuccess = @unlink($fullPath);
+        if (!$deleteSuccess) {
+            error_log("Failed to delete burned note file: $fullPath");
+        }
         
         // Update index to remove note
-        updateIndexFile(function($idx) use ($sharedNote) {
+        $updateSuccess = updateIndexFile(function($idx) use ($sharedNote) {
             $idx['notes'] = array_filter($idx['notes'], function($n) use ($sharedNote) {
                 return $n['path'] !== $sharedNote['path'];
             });
             $idx['notes'] = array_values($idx['notes']);
             return $idx;
         });
+        
+        if (!$updateSuccess) {
+            error_log("Failed to update index after burning note: {$sharedNote['path']}");
+        }
     }
     
     sendResponse($response);

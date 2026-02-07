@@ -32,3 +32,6 @@ uploads/*
 # PHP file locks
 *.lock
 
+# Test files
+cookies.txt
+

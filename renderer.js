@@ -184,14 +184,31 @@ class MarkdownRenderer {
             this.hideShareModal();
         });
         
-        copyBtn?.addEventListener('click', () => {
+        copyBtn?.addEventListener('click', async () => {
             const input = document.getElementById('share-link-input');
-            input.select();
-            document.execCommand('copy');
-            copyBtn.textContent = 'Copied!';
-            setTimeout(() => {
-                copyBtn.textContent = 'Copy';
-            }, 2000);
+            try {
+                await navigator.clipboard.writeText(input.value);
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                }, 2000);
+            } catch (err) {
+                // Fallback for older browsers
+                input.select();
+                try {
+                    document.execCommand('copy');
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy';
+                    }, 2000);
+                } catch (e) {
+                    console.error('Failed to copy:', e);
+                    copyBtn.textContent = 'Failed';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy';
+                    }, 2000);
+                }
+            }
         });
         
         burnCheckbox?.addEventListener('change', async (e) => {

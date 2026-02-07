@@ -19,7 +19,16 @@ function getAuthUsers() {
     foreach ($pairs as $pair) {
         $parts = explode(':', trim($pair), 2);
         if (count($parts) === 2) {
-            $users[trim($parts[0])] = trim($parts[1]);
+            $username = trim($parts[0]);
+            $password = trim($parts[1]);
+            // Store hashed password if not already hashed
+            if (strlen($password) < 60 || substr($password, 0, 4) !== '$2y$') {
+                // Plain text password - hash it
+                $users[$username] = password_hash($password, PASSWORD_DEFAULT);
+            } else {
+                // Already hashed
+                $users[$username] = $password;
+            }
         }
     }
     return $users;
@@ -38,7 +47,7 @@ if ($method === 'POST') {
     
     $users = getAuthUsers();
     
-    if (isset($users[$username]) && $users[$username] === $password) {
+    if (isset($users[$username]) && password_verify($password, $users[$username])) {
         // Login successful
         $_SESSION['authenticated'] = true;
         $_SESSION['username'] = $username;

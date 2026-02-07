@@ -171,7 +171,7 @@ The following environment variables can be set in `.env` file or passed to Docke
 ```bash
 # Authentication Configuration
 AUTH_ENABLED=true                    # Set to 'false' to disable authentication
-AUTH_USERS=admin:changeme123         # Username:password pairs (comma-separated)
+AUTH_USERS=admin:your-secure-password-here         # Username:password pairs (comma-separated)
 
 # CORS Configuration
 ALLOWED_ORIGINS=*                    # Allowed origins for CORS (use specific domain in production)
@@ -180,17 +180,17 @@ ALLOWED_ORIGINS=*                    # Allowed origins for CORS (use specific do
 **Example `.env` file:**
 ```bash
 AUTH_ENABLED=true
-AUTH_USERS=admin:securepass123,user2:anotherpass456
+AUTH_USERS=admin:MySecurePass123!,user2:AnotherStrongPass456!
 ALLOWED_ORIGINS=https://yourdomain.com
 ```
 
 **Docker Configuration:**
-Update `docker-compose.yml` with your environment variables:
+Update `docker-compose.yml` with your environment variables or create a `.env` file:
 ```yaml
 environment:
-  - AUTH_ENABLED=true
-  - AUTH_USERS=admin:yourpassword
-  - ALLOWED_ORIGINS=*
+  - AUTH_ENABLED=${AUTH_ENABLED:-true}
+  - AUTH_USERS=${AUTH_USERS:-admin:your-password-here}
+  - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
 ```
 
 **Security Best Practices:**
@@ -235,7 +235,7 @@ Content-Type: application/json
 Body:
 {
   "username": "admin",
-  "password": "changeme123"
+  "password": "your-password-here"
 }
 
 Response:
