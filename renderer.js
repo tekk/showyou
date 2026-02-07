@@ -10,6 +10,7 @@ class MarkdownRenderer {
         this.currentEditingNote = null;
         this.authenticated = false;
         this.currentPasswordNote = null;
+        this.currentShareNote = null;
         
         this.setupMarked();
         this.setupEditorUI();
@@ -193,13 +194,44 @@ class MarkdownRenderer {
             }, 2000);
         });
         
-        burnCheckbox?.addEventListener('change', (e) => {
+        burnCheckbox?.addEventListener('change', async (e) => {
             const warning = document.getElementById('burn-warning');
             warning.style.display = e.target.checked ? 'block' : 'none';
+            
+            // Regenerate share link with updated settings
+            if (this.currentShareNote) {
+                const linkInput = document.getElementById('share-link-input');
+                linkInput.value = 'Updating share link...';
+                
+                try {
+                    const response = await fetch('api/share.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            path: this.currentShareNote.path,
+                            burnAfterReading: e.target.checked
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && data.success) {
+                        linkInput.value = data.shareUrl;
+                    } else {
+                        linkInput.value = 'Error: ' + (data.error || 'Failed to update share link');
+                    }
+                } catch (error) {
+                    console.error('Share update error:', error);
+                    linkInput.value = 'Error: ' + error.message;
+                }
+            }
         });
     }
     
     async showShareModal(note) {
+        this.currentShareNote = note;
         const modal = document.getElementById('share-modal');
         const noteNameEl = document.getElementById('share-note-name');
         const linkInput = document.getElementById('share-link-input');
