@@ -1,6 +1,9 @@
 <?php
 require_once 'config.php';
 
+// Require authentication
+requireAuth();
+
 // Get request method
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -26,6 +29,7 @@ if ($method === 'POST') {
     $name = trim($input['name']);
     $content = $input['content'];
     $slug = isset($input['slug']) ? trim($input['slug']) : '';
+    $password = isset($input['password']) ? trim($input['password']) : '';
     
     // Validate name
     $safeName = validateFilename($name);
@@ -61,13 +65,16 @@ if ($method === 'POST') {
     }
     
     // Update index using thread-safe function
-    $success = updateIndexFile(function($index) use ($name, $filename, $slug) {
+    $success = updateIndexFile(function($index) use ($name, $filename, $slug, $password) {
         $noteData = [
             'name' => $name,
             'path' => 'notes/' . $filename
         ];
         if ($slug) {
             $noteData['slug'] = $slug;
+        }
+        if ($password) {
+            $noteData['passwordHash'] = password_hash($password, PASSWORD_DEFAULT);
         }
         $index['notes'][] = $noteData;
         return $index;

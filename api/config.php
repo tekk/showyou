@@ -1,4 +1,7 @@
 <?php
+// Start session for authentication
+session_start();
+
 // API Configuration
 header('Content-Type: application/json');
 
@@ -44,6 +47,27 @@ function sendResponse($data, $statusCode = 200) {
 // Helper function to send error response
 function sendError($message, $statusCode = 400) {
     sendResponse(['error' => $message], $statusCode);
+}
+
+// Helper function to check authentication
+// Exempt share.php from authentication
+function requireAuth() {
+    // Check if we're in share.php
+    $scriptName = basename($_SERVER['SCRIPT_NAME']);
+    if ($scriptName === 'share.php' || $scriptName === 'auth.php') {
+        return; // Don't require auth for share and auth endpoints
+    }
+    
+    // Check if authentication is enabled
+    $authEnabled = getenv('AUTH_ENABLED');
+    if ($authEnabled === 'false' || $authEnabled === '0') {
+        return; // Authentication disabled
+    }
+    
+    // Check if user is authenticated
+    if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
+        sendError('Authentication required', 401);
+    }
 }
 
 // Validate and sanitize filename to prevent directory traversal

@@ -123,6 +123,28 @@ greet('World');</code></pre>
         </div>
     </div>
     
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>🔐 Login Required</h2>
+            <p>Please log in to access Private Notes</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-username">Username:</label>
+                    <input type="text" id="login-username" name="username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" name="password" required>
+                </div>
+                <div id="login-error" class="error-message" style="display: none;"></div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <!-- Note Editor Modal -->
     <div id="editor-modal" class="modal" style="display: none;">
         <div class="modal-content editor-modal-content">
@@ -133,6 +155,7 @@ greet('World');</code></pre>
             <div class="editor-toolbar">
                 <input type="text" id="note-title-input" placeholder="Note title..." class="note-title-input">
                 <input type="text" id="note-slug-input" placeholder="Custom slug (optional)..." class="note-slug-input">
+                <input type="password" id="note-password-input" placeholder="Password (optional, for protection)..." class="note-password-input">
                 <div class="editor-tabs">
                     <button id="tab-edit" class="tab-button active">✏️ Edit</button>
                     <button id="tab-preview" class="tab-button">👁️ Preview</button>
@@ -149,6 +172,50 @@ greet('World');</code></pre>
             <div class="editor-footer">
                 <button id="editor-save" class="btn-primary">💾 Save</button>
                 <button id="editor-cancel" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Password Prompt Modal -->
+    <div id="password-prompt-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>🔒 Password Protected Note</h2>
+            <p>This note is password protected. Please enter the password to view it.</p>
+            <form id="password-prompt-form">
+                <div class="form-group">
+                    <label for="note-password-prompt">Password:</label>
+                    <input type="password" id="note-password-prompt" name="password" required autofocus>
+                </div>
+                <div id="password-error" class="error-message" style="display: none;"></div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Unlock</button>
+                    <button type="button" class="btn-secondary" id="password-cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" id="share-close">&times;</span>
+            <h2>🔗 Share Note</h2>
+            <p id="share-note-name"></p>
+            <div class="form-group">
+                <label>Share Link:</label>
+                <div class="share-link-container">
+                    <input type="text" id="share-link-input" readonly class="share-link-input">
+                    <button id="copy-share-link" class="btn-primary">Copy</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="burn-after-reading">
+                    <span>🔥 Burn after reading (self-destruct after first view)</span>
+                </label>
+            </div>
+            <div id="burn-warning" class="warning-message" style="display: none;">
+                ⚠️ Warning: This note will be permanently deleted after someone views it for the first time!
             </div>
         </div>
     </div>
