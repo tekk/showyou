@@ -102,8 +102,17 @@ if ($method === 'PUT') {
     // Validate path
     $fullPath = BASE_DIR . '/' . $path;
     
+    // Check if file exists first
+    if (!file_exists($fullPath)) {
+        sendError('Note file does not exist', 404);
+    }
+    
     // Ensure path is within allowed directories
     $realPath = realpath(dirname($fullPath));
+    if ($realPath === false) {
+        sendError('Invalid note path', 400);
+    }
+    
     $allowedPaths = [realpath(NOTES_DIR), realpath(UPLOADS_DIR)];
     
     $isAllowed = false;
@@ -114,7 +123,7 @@ if ($method === 'PUT') {
         }
     }
     
-    if (!$isAllowed || !file_exists($fullPath)) {
+    if (!$isAllowed) {
         sendError('Invalid note path', 400);
     }
     

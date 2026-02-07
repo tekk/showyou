@@ -10,10 +10,16 @@ class MarkdownRenderer {
         this.currentEditingNote = null;
         
         this.setupMarked();
-        this.detectBackendMode();
-        this.setupUploadUI();
         this.setupEditorUI();
-        this.loadNotes();
+        
+        // Chain async operations properly
+        this.detectBackendMode().then(() => {
+            this.setupUploadUI();
+            this.loadNotes();
+        });
+        
+        // Initialize Monaco Editor
+        this.initMonacoEditor();
     }
     
     async detectBackendMode() {
@@ -289,11 +295,7 @@ class MarkdownRenderer {
             this.closeEditor();
         });
         
-        window.addEventListener('click', (event) => {
-            if (event.target === editorModal) {
-                this.closeEditor();
-            }
-        });
+        // Note: Window click handler removed for full-page editor
         
         // Tab switching
         tabEdit?.addEventListener('click', () => {
@@ -334,8 +336,8 @@ class MarkdownRenderer {
     }
     
     initMonacoEditor() {
-        if (typeof require === 'undefined') {
-            // Monaco loader
+        if (typeof require !== 'undefined') {
+            // Monaco loader is available
             require.config({ 
                 paths: { 
                     'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' 
@@ -346,6 +348,7 @@ class MarkdownRenderer {
                 this.createMonacoEditor();
             });
         } else {
+            // Wait for Monaco loader to load
             setTimeout(() => this.initMonacoEditor(), 100);
         }
     }
@@ -413,8 +416,13 @@ class MarkdownRenderer {
         
         editorModal.style.display = 'flex';
         
-        // Focus title input
-        setTimeout(() => titleInput.focus(), 100);
+        // Force Monaco editor to recalculate its size
+        setTimeout(() => {
+            if (this.monacoEditor) {
+                this.monacoEditor.layout();
+            }
+            titleInput.focus();
+        }, 100);
     }
     
     closeEditor() {
