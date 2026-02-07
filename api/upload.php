@@ -1,6 +1,9 @@
 <?php
 require_once 'config.php';
 
+// Require authentication
+requireAuth();
+
 // Handle file upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if file was uploaded

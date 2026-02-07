@@ -49,6 +49,20 @@
 **Supported Languages:**
 JavaScript, TypeScript, Python, Java, C++, C#, PHP, Ruby, Go, Rust, Swift, Kotlin, HTML/XML, CSS, SCSS, JSON, Bash, Shell, YAML, Dockerfile, SQL, Markdown, Plaintext
 
+### 🔐 Security & Authentication (Backend Mode)
+- **Site-wide authentication** with session management
+- **Per-note password protection** using bcrypt hashing
+- Environment-based credential configuration
+- Protected API endpoints with automatic auth checks
+- Secure session handling
+
+### 🔗 Sharing & Collaboration (Backend Mode)
+- **Share notes** with unique cryptographic tokens
+- **Password-protected shares** for sensitive content
+- **Burn after reading** - self-destructing notes that delete after first view
+- Share links work without requiring login
+- Beautiful share viewer page with same dark theme
+
 ## 🚀 Quick Start
 
 ### Static Mode (GitHub Pages)
@@ -118,6 +132,20 @@ The PHP backend allows you to upload files directly through the UI and automatic
 
 **File restrictions**: Maximum file size is 4GB (FAT32 limit). Executable and server-side script files are blocked for security.
 
+**Share Notes:**
+1. Click the share button (🔗) next to any note in the sidebar
+2. A share link is automatically generated
+3. Optionally check "Burn after reading" to make it self-destruct
+4. Copy the link and share it with others
+5. Shared notes can be viewed without logging in
+6. Password-protected notes require the password even when shared
+
+**Password-Protected Notes:**
+1. When creating a note, enter a password in the password field (optional)
+2. The password is securely hashed using bcrypt
+3. Anyone viewing the note (including shares) will need to enter the password
+4. Passwords are never stored in plain text
+
 #### Static Mode (Manual)
 
 1. Create `.md` files in the `notes/` directory
@@ -134,6 +162,44 @@ The PHP backend allows you to upload files directly through the UI and automatic
    ```
 3. Reload the page
 
+## ⚙️ Configuration
+
+### Environment Variables
+
+The following environment variables can be set in `.env` file or passed to Docker:
+
+```bash
+# Authentication Configuration
+AUTH_ENABLED=true                    # Set to 'false' to disable authentication
+AUTH_USERS=admin:your-secure-password-here         # Username:password pairs (comma-separated)
+
+# CORS Configuration
+ALLOWED_ORIGINS=*                    # Allowed origins for CORS (use specific domain in production)
+```
+
+**Example `.env` file:**
+```bash
+AUTH_ENABLED=true
+AUTH_USERS=admin:MySecurePass123!,user2:AnotherStrongPass456!
+ALLOWED_ORIGINS=https://yourdomain.com
+```
+
+**Docker Configuration:**
+Update `docker-compose.yml` with your environment variables or create a `.env` file:
+```yaml
+environment:
+  - AUTH_ENABLED=${AUTH_ENABLED:-true}
+  - AUTH_USERS=${AUTH_USERS:-admin:your-password-here}
+  - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+```
+
+**Security Best Practices:**
+- ⚠️ **CHANGE DEFAULT CREDENTIALS** before deploying to production
+- Use strong passwords with mix of characters
+- Set `ALLOWED_ORIGINS` to your specific domain in production
+- Use HTTPS in production environments
+- Keep authentication enabled unless you have another security layer
+
 ## 📸 Screenshots
 
 ![Homepage](https://github.com/user-attachments/assets/602b08c3-448c-4999-a6bb-76d195c9a14c)
@@ -147,6 +213,168 @@ The PHP backend allows you to upload files directly through the UI and automatic
 ### API Endpoints (PHP Backend)
 
 When running with the PHP backend, the following API endpoints are available:
+
+#### Authentication
+
+**Check Auth Status**
+```
+GET /api/auth.php
+
+Response:
+{
+  "authenticated": true,
+  "username": "admin"
+}
+```
+
+**Login**
+```
+POST /api/auth.php
+Content-Type: application/json
+
+Body:
+{
+  "username": "admin",
+  "password": "your-password-here"
+}
+
+Response:
+{
+  "success": true,
+  "username": "admin"
+}
+```
+
+**Logout**
+```
+DELETE /api/auth.php
+
+Response:
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+```
+
+#### Notes Management
+
+**List Notes**
+```
+GET /api/notes.php
+Requires: Authentication
+
+Response:
+{
+  "notes": [
+    {
+      "name": "Example Note",
+      "path": "notes/example.md",
+      "slug": "example",
+      "passwordHash": "$2y$10$...",
+      "shareToken": "abc123..."
+    }
+  ]
+}
+```
+
+**Create Note**
+```
+POST /api/notes.php
+Requires: Authentication
+Content-Type: application/json
+
+Body:
+{
+  "name": "My Note",
+  "content": "# Hello World",
+  "slug": "my-note",
+  "password": "optional-password"
+}
+
+Response:
+{
+  "success": true,
+  "name": "My Note",
+  "path": "notes/my-note.md",
+  "slug": "my-note"
+}
+```
+
+**Update Note**
+```
+PUT /api/notes.php
+Requires: Authentication
+Content-Type: application/json
+
+Body:
+{
+  "path": "notes/my-note.md",
+  "content": "# Updated content"
+}
+
+Response:
+{
+  "success": true,
+  "path": "notes/my-note.md"
+}
+```
+
+**Delete Note**
+```
+DELETE /api/notes.php
+Requires: Authentication
+Content-Type: application/json
+
+Body:
+{
+  "path": "notes/my-note.md"
+}
+
+Response:
+{
+  "success": true,
+  "path": "notes/my-note.md"
+}
+```
+
+#### Sharing
+
+**Create Share Link**
+```
+POST /api/share.php
+Requires: Authentication
+Content-Type: application/json
+
+Body:
+{
+  "path": "notes/my-note.md",
+  "burnAfterReading": false
+}
+
+Response:
+{
+  "success": true,
+  "shareToken": "abc123...",
+  "shareUrl": "http://localhost:8080/share.html?token=abc123...",
+  "burnAfterReading": false
+}
+```
+
+**View Shared Note**
+```
+GET /api/share.php?token=abc123&password=optional
+Requires: No authentication (public endpoint)
+
+Response:
+{
+  "success": true,
+  "name": "My Note",
+  "content": "# Hello World",
+  "burnAfterReading": false
+}
+```
+
+Note: If `burnAfterReading` is true, the note is automatically deleted after being viewed.
 
 #### Upload File
 ```

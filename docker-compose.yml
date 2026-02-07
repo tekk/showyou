@@ -13,4 +13,7 @@ services:
     environment:
       - PHP_UPLOAD_MAX_FILESIZE=5M
       - PHP_POST_MAX_SIZE=5M
+      - AUTH_ENABLED=${AUTH_ENABLED:-true}
+      - AUTH_USERS=${AUTH_USERS:-admin:changeme123}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
     restart: unless-stopped

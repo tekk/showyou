@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Note - Private Notes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Stars Parallax Background Canvas -->
+    <canvas id="stars-canvas"></canvas>
+    
+    <!-- Main Content -->
+    <div class="container">
+        <header class="header">
+            <h1 class="title">📝 Shared Note</h1>
+            <p class="subtitle">Private Notes</p>
+        </header>
+        
+        <div class="content-wrapper" style="grid-template-columns: 1fr;">
+            <!-- Main content area -->
+            <main class="main-content">
+                <div class="content-header">
+                    <h2 id="shared-note-title">Loading...</h2>
+                </div>
+                <article id="shared-note-content" class="markdown-body">
+                    <div class="loading">Loading shared note...</div>
+                </article>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Password Prompt Modal -->
+    <div id="password-prompt-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>🔒 Password Protected Note</h2>
+            <p>This note is password protected. Please enter the password to view it.</p>
+            <form id="password-prompt-form">
+                <div class="form-group">
+                    <label for="note-password-prompt">Password:</label>
+                    <input type="password" id="note-password-prompt" name="password" required autofocus>
+                </div>
+                <div id="password-error" class="error-message" style="display: none;"></div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Burn After Reading Warning -->
+    <div id="burn-warning-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>🔥 Warning: Self-Destructing Note</h2>
+            <p>This note will be <strong>permanently deleted</strong> after you view it.</p>
+            <p>Once you proceed, the note cannot be recovered.</p>
+            <div class="form-actions">
+                <button id="burn-proceed" class="btn-primary">I Understand, Show Note</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include libraries and scripts -->
+    <script src="lib/marked.min.js"></script>
+    <script src="lib/highlight.bundle.js"></script>
+    <script src="shader.js"></script>
+    <script>
+        // Share viewer script
+        class ShareViewer {
+            constructor() {
+                this.titleElement = document.getElementById('shared-note-title');
+                this.contentElement = document.getElementById('shared-note-content');
+                this.setupMarked();
+                this.loadSharedNote();
+            }
+            
+            setupMarked() {
+                // Same as main renderer
+                const renderer = {
+                    code({text, lang}) {
+                        const language = lang || '';
+                        if (language && hljs.getLanguage(language)) {
+                            try {
+                                const highlighted = hljs.highlight(text, { language }).value;
+                                return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
+                            } catch (err) {
+                                console.error('Highlight error:', err);
+                            }
+                        }
+                        try {
+                            const highlighted = hljs.highlightAuto(text).value;
+                            return `<pre><code class="hljs">${highlighted}</code></pre>`;
+                        } catch (err) {
+                            const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+                            return `<pre><code>${escaped}</code></pre>`;
+                        }
+                    }
+                };
+                
+                marked.use({ renderer });
+            }
+            
+            async loadSharedNote() {
+                const params = new URLSearchParams(window.location.search);
+                const token = params.get('token');
+                
+                if (!token) {
+                    this.showError('No share token provided');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`api/share.php?token=${token}`);
+                    
+                    if (response.status === 401) {
+                        // Password required
+                        this.showPasswordPrompt(token);
+                        return;
+                    }
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to load note');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.burnAfterReading) {
+                        // Show warning before displaying
+                        this.showBurnWarning(() => {
+                            this.displayNote(data);
+                        });
+                    } else {
+                        this.displayNote(data);
+                    }
+                } catch (error) {
+                    console.error('Error loading shared note:', error);
+                    this.showError(error.message);
+                }
+            }
+            
+            showPasswordPrompt(token) {
+                const modal = document.getElementById('password-prompt-modal');
+                const form = document.getElementById('password-prompt-form');
+                const errorDiv = document.getElementById('password-error');
+                
+                modal.style.display = 'flex';
+                
+                form.onsubmit = async (e) => {
+                    e.preventDefault();
+                    const password = document.getElementById('note-password-prompt').value;
+                    
+                    try {
+                        const response = await fetch(`api/share.php?token=${token}&password=${encodeURIComponent(password)}`);
+                        
+                        if (!response.ok) {
+                            const error = await response.json();
+                            errorDiv.textContent = error.error || 'Invalid password';
+                            errorDiv.style.display = 'block';
+                            return;
+                        }
+                        
+                        const data = await response.json();
+                        modal.style.display = 'none';
+                        
+                        if (data.burnAfterReading) {
+                            this.showBurnWarning(() => {
+                                this.displayNote(data);
+                            });
+                        } else {
+                            this.displayNote(data);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        errorDiv.textContent = 'Error: ' + error.message;
+                        errorDiv.style.display = 'block';
+                    }
+                };
+            }
+            
+            showBurnWarning(callback) {
+                const modal = document.getElementById('burn-warning-modal');
+                const proceedBtn = document.getElementById('burn-proceed');
+                
+                modal.style.display = 'flex';
+                
+                proceedBtn.onclick = () => {
+                    modal.style.display = 'none';
+                    callback();
+                };
+            }
+            
+            displayNote(data) {
+                this.titleElement.textContent = data.name;
+                const html = marked.parse(data.content);
+                this.contentElement.innerHTML = html;
+                
+                if (data.burnAfterReading) {
+                    // Add warning banner
+                    const banner = document.createElement('div');
+                    banner.className = 'warning-message';
+                    banner.style.marginBottom = '2rem';
+                    banner.textContent = '🔥 This note has been permanently deleted after this viewing.';
+                    this.contentElement.insertBefore(banner, this.contentElement.firstChild);
+                }
+            }
+            
+            showError(message) {
+                this.titleElement.textContent = 'Error';
+                this.contentElement.innerHTML = `
+                    <div class="error-message">
+                        <h3>Error</h3>
+                        <p>${message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            new ShareViewer();
+        });
+    </script>
+</body>
+</html>
