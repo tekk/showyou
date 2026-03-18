@@ -1,4 +1,4 @@
-# 📝 Private Notes
+# Showyou
 
 **GitHub Flavored Markdown renderer with VS Code-style syntax highlighting.**
 
@@ -8,8 +8,6 @@
 
 ## ✨ Features
 
-### 🌟 WebGL Parallax Stars Background
-- Three-layer depth effect with realistic parallax
 - Mouse-responsive star movement
 - Twinkling animations at 60 FPS
 - Procedurally generated using fragment shaders
