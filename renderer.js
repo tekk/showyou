@@ -23,6 +23,13 @@ class MarkdownRenderer {
             if (response.ok) {
                 this.backendMode = true;
                 console.log('Backend mode enabled');
+                // Show upload button now that we confirmed backend is available
+                const uploadButton = document.getElementById('upload-button');
+                if (uploadButton) {
+                    uploadButton.style.display = 'inline-block';
+                }
+                // Reload notes to get backend list with edit/delete buttons
+                this.loadNotes();
             }
         } catch (error) {
             this.backendMode = false;
@@ -38,13 +45,8 @@ class MarkdownRenderer {
         const uploadForm = document.getElementById('upload-form');
         const newNoteButton = document.getElementById('new-note-button');
         
-        // Show upload button only in backend mode
-        setTimeout(() => {
-            if (this.backendMode && uploadButton) {
-                uploadButton.style.display = 'inline-block';
-            }
-        }, 100);
-        
+        // Upload button is shown by detectBackendMode() once backend is confirmed
+
         // New note button - always visible
         newNoteButton?.addEventListener('click', () => {
             this.openEditor();
@@ -334,18 +336,19 @@ class MarkdownRenderer {
     }
     
     initMonacoEditor() {
-        if (typeof require === 'undefined') {
-            // Monaco loader
-            require.config({ 
-                paths: { 
-                    'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' 
-                } 
+        if (typeof require !== 'undefined') {
+            // Monaco loader is available
+            require.config({
+                paths: {
+                    'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs'
+                }
             });
-            
+
             require(['vs/editor/editor.main'], () => {
                 this.createMonacoEditor();
             });
         } else {
+            // Wait for Monaco loader script to be available
             setTimeout(() => this.initMonacoEditor(), 100);
         }
     }
