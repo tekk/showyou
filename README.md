@@ -74,6 +74,13 @@ The PHP backend allows you to upload files directly through the UI and automatic
 3. Open http://localhost:8080
 4. Click the "📤 Upload" button to upload markdown files or attachments
 
+**Note**: The default `docker-compose.yml` sets `PHP_UPLOAD_MAX_FILESIZE=5M` and `PHP_POST_MAX_SIZE=5M`, limiting uploads to 5 MB. To allow larger uploads, update those values in `docker-compose.yml`:
+```yaml
+environment:
+  - PHP_UPLOAD_MAX_FILESIZE=500M
+  - PHP_POST_MAX_SIZE=500M
+```
+
 #### Using Local PHP
 
 1. Clone the repository
@@ -114,7 +121,7 @@ The PHP backend allows you to upload files directly through the UI and automatic
 - Documents: `[Document name](filename.pdf)` or `[Document name](uploads/filename.pdf)`
 - Files are automatically linked when uploaded during note editing
 
-**File restrictions**: Maximum file size is 4GB (FAT32 limit). Executable and server-side script files are blocked for security.
+**File restrictions**: Maximum file size is 4 GB (FAT32 limit; capped at 5 MB when using the default Docker configuration). Executable and server-side script files are blocked for security (e.g. `.php`, `.exe`, `.sh`, `.py`).
 
 #### Static Mode (Manual)
 
@@ -162,6 +169,11 @@ Response:
   "path": "uploads/2026-01-27_143000_example.md",
   "size": 1024,
   "type": "md"
+}
+
+Error (blocked file type):
+{
+  "error": "File type not allowed for security reasons. Blocked types: php, exe, sh, ..."
 }
 ```
 
@@ -244,7 +256,7 @@ node build-hljs.js
 ### Project Structure
 
 ```
-private-notes/
+showyou/
 ├── index.html              # Main HTML
 ├── shader.js               # WebGL shader
 ├── renderer.js             # Markdown renderer
@@ -253,7 +265,14 @@ private-notes/
 ├── lib/
 │   ├── marked.min.js       # Markdown parser
 │   └── highlight.bundle.js # Syntax highlighter
-└── notes/                  # Your markdown files
+├── notes/                  # Your markdown files
+├── uploads/                # Uploaded attachments
+├── api/                    # PHP backend API
+│   ├── config.php
+│   ├── notes.php
+│   └── upload.php
+├── Dockerfile
+└── docker-compose.yml
 ```
 
 ## 🎨 Customization
@@ -300,7 +319,7 @@ git push origin main:gh-pages
 ### Security Features
 
 - ✅ **File Type Validation**: Dangerous file types (executables, server scripts) are blocked
-- ✅ **File Size Limits**: Maximum 4GB per file (FAT32 limit)
+- ✅ **File Size Limits**: Maximum 4 GB per file (FAT32 limit); Docker default caps this at 5 MB via `PHP_UPLOAD_MAX_FILESIZE`
 - ✅ **Path Traversal Prevention**: Filenames are sanitized to prevent directory traversal attacks
 - ✅ **Unique Filenames**: Uploaded files are timestamped to prevent overwriting
 - ✅ **Input Sanitization**: All user input is validated and sanitized
@@ -312,7 +331,7 @@ git push origin main:gh-pages
 The PHP backend implements multiple security measures:
 
 - File type blocklist (prevents dangerous executables and server scripts)
-- File size validation (max 4GB - FAT32 limit)
+- File size validation (max 4 GB application limit; 5 MB Docker default)
 - Filename sanitization (prevents directory traversal)
 - Path validation (ensures files stay within allowed directories)
 - Unique filename generation (prevents overwriting existing files)
